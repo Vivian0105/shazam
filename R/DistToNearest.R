@@ -1692,7 +1692,7 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
         pb <- progressBar(15)
     }
     # Run 15 independent fitting attempts to keep the best fit across all attempts,
-    # as measured by the highest log-likelihood, is retained.
+    # as measured by the highest log-likelihood.
     for (i in 1:15) {
         itr <- 1
         max_itr <- 100
