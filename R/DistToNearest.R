@@ -1684,16 +1684,20 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
     
     set.seed(NULL)
     # options(warn=-1)
-    LOG_LIK<-0
+    LOG_LIK <- 0
+    fit_found <- FALSE
     
     if (progress) {
         cat("      STEP> ", "Fitting ", func, "\n", sep="")
         pb <- progressBar(15)
     }
+    # Run 15 independent fitting attempts to keep the best fit across all attempts,
+    # as measured by the highest log-likelihood, is retained.
     for (i in 1:15) {
         itr <- 1
         max_itr <- 100
         key <- FALSE
+        # The inner loop controls how many attempts to find a single valid fit.
         while (!key && itr <= max_itr){
             # Fit mixture Functions
             MixModel <- try(suppressWarnings(MASS::fitdistr(na.exclude(ent), mixFunction, 
@@ -1729,8 +1733,11 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
         }
         
         # Check if we failed to find a valid fit after max iterations
+        # If 100 failed attempts, move to the next outer iteration
         if (!key) {
-            stop(paste0("Failed to fit after ", max_itr, " attempts in outer iteration ", i))
+            warning(paste0("Failed to fit after ", max_itr, " attempts in outer iteration ", i,
+                           ". Skipping to next iteration."))
+            next
         }
         # print(paste0(func, " fit done. Loglik= ", round(MixModel$loglik, digits = 2)))
         # Invoke fit parameters
@@ -1738,6 +1745,7 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
         log_lik <- round(abs(MixModel$loglik), digits = 2)
         if (log_lik > LOG_LIK){
             LOG_LIK <- log_lik
+            fit_found <- TRUE
             
             FUNC1.0 <- MixModel$estimate[[1]]
             FUNC1.1 <- MixModel$estimate[[2]] 
@@ -1759,6 +1767,15 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
         if (progress) { pb$tick() }
     }
     # options(warn=0)
+
+    # If all 15 outer iterations failed to produce a valid fit, stop with a
+    # informative error. Without this, the code would fail with a cryptic
+    # 'object not found' error because FUNC1.0 etc. are only assigned inside
+    # the loop when a valid fit is found.
+    if (!fit_found) {
+        stop(paste0("No valid fit found for model '", model, "' across all 15 outer iterations. ",
+                    "Try a different model or increase the data size."))
+    }
 
     # Invoke best fit parameters
     log_lik  <- LOG_LIK
