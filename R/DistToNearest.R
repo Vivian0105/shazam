@@ -1789,6 +1789,13 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
     func2.2 <- FUNC2.2
     
     # order fit parameters
+    # Ensure curve 1 is the left (lower-mean) component and curve 2 is the right
+    # (higher-mean) component. MASS::fitdistr does not guarantee label ordering, so
+    # the optimizer can converge with the two components swapped. The downstream
+    # threshold search uses func1 as the lower distribution and func2 as the upper,
+    # so we swap them here if they are inverted. Only same-family pairs are checked
+    # because for mixed pairs (norm-gamma, gamma-norm) the model definition already
+    # encodes which family is expected on which side.
     if (bits[1]=="norm" & bits[2]=="norm" & func1.1>func2.1) {
         FUNC0 <- func1.0
         FUNC1 <- func1.1 
