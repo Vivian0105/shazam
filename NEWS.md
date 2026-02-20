@@ -5,7 +5,7 @@ Distance Profiling:
 
 + Fixed a bug in `findThreshold()` where the `max_itr` limit introduced in 
   v1.3.0 caused `rocSpace()` to `stop()` when a single outer fitting iteration 
-  exhausted 100 attempts, aborting analyses that would previously succeed. The 
+  exhausted 1000 attempts, aborting analyses that would previously succeed. The 
   inner loop now emits a `warning()` and continues to the next outer iteration 
   instead of stopping. If all 15 outer iterations fail to produce a valid fit, 
   an error message is returned.

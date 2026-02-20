@@ -1695,7 +1695,7 @@ rocSpace <- function(ent, omega.gmm, mu.gmm, sigma.gmm, model, cutoff, sen, spc,
     # as measured by the highest log-likelihood.
     for (i in 1:15) {
         itr <- 1
-        max_itr <- 100
+        max_itr <- 1000
         key <- FALSE
         # The inner loop controls how many attempts to find a single valid fit.
         while (!key && itr <= max_itr){
